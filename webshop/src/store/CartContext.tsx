@@ -57,13 +57,11 @@ type Ctx = {
 
 const CartContext = React.createContext<Ctx | null>(null);
 
-// Viktig: stabil init for både SSR og første klient-render
-function init(): CartState {
-  return { items: [] };
-}
+// Bruk et tydelig initial-state (samme på server og første klient-render)
+const initialState: CartState = { items: [] };
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
-  const [state, dispatch] = React.useReducer(cartReducer, undefined as any, init);
+  const [state, dispatch] = React.useReducer(cartReducer, initialState);
 
   // Hydrer fra localStorage ETTER mount (unngår hydration mismatch)
   React.useEffect(() => {
