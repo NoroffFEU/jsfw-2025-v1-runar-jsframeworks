@@ -1,21 +1,45 @@
 "use client";
-import { createContext, useContext, useEffect, useMemo, useReducer } from "react";
-import type { CartItem, CartState } from "./cartTypes";
+
+import React from "react";
 import { toast } from "sonner";
+import type { CartItem, CartState } from "./cartTypes";
 
 type Action =
+  | { type: "LOAD"; payload: CartState }
   | { type: "ADD"; payload: CartItem }
   | { type: "REMOVE"; id: string }
   | { type: "SET_QTY"; id: string; qty: number }
   | { type: "CLEAR" };
 
-// ⬇️ gjør denne eksportert
 export function cartReducer(state: CartState, action: Action): CartState {
   switch (action.type) {
-    // ...cases...
+    case "LOAD": {
+      const items = Array.isArray(action.payload?.items) ? action.payload.items : [];
+      return { items };
+    }
+    case "ADD": {
+      const exists = state.items.find(i => i.id === action.payload.id);
+      const items = exists
+        ? state.items.map(i =>
+            i.id === action.payload.id
+              ? { ...i, qty: i.qty + action.payload.qty }
+              : i
+          )
+        : [...state.items, action.payload];
+      return { items };
+    }
+    case "REMOVE":
+      return { items: state.items.filter(i => i.id !== action.id) };
+    case "SET_QTY":
+      return {
+        items: state.items.map(i =>
+          i.id === action.id ? { ...i, qty: Math.max(1, action.qty) } : i
+        ),
+      };
+    case "CLEAR":
+      return { items: [] };
     default: {
-      // Exhaustive check uten lint-varsel:
-      ( (x: never) => x )(action as never);
+      ((x: never) => x)(action as never);
       return state;
     }
   }
@@ -23,7 +47,7 @@ export function cartReducer(state: CartState, action: Action): CartState {
 
 type Ctx = {
   state: CartState;
-  add: (item: CartItem) => void;
+  add: (i: CartItem) => void;
   remove: (id: string) => void;
   setQty: (id: string, qty: number) => void;
   clear: () => void;
@@ -31,39 +55,73 @@ type Ctx = {
   totalCost: number;
 };
 
-const CartCtx = createContext<Ctx | null>(null);
-const STORAGE_KEY = "webshop_cart_v1";
+const CartContext = React.createContext<Ctx | null>(null);
+
+// Viktig: stabil init for både SSR og første klient-render
+function init(): CartState {
+  return { items: [] };
+}
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
-  const [state, dispatch] = useReducer(cartReducer, { items: [] });
+  const [state, dispatch] = React.useReducer(cartReducer, undefined as any, init);
 
-  useEffect(() => {
-    const raw = typeof window !== "undefined" ? localStorage.getItem(STORAGE_KEY) : null;
-    if (raw) {
-      const parsed = JSON.parse(raw) as CartState;
-      if (parsed?.items) parsed.items.forEach(i => dispatch({ type: "ADD", payload: { ...i } }));
-    }
+  // Hydrer fra localStorage ETTER mount (unngår hydration mismatch)
+  React.useEffect(() => {
+    try {
+      const raw = localStorage.getItem("cart");
+      if (raw) {
+        const parsed = JSON.parse(raw) as CartState;
+        dispatch({ type: "LOAD", payload: parsed });
+      }
+    } catch {}
   }, []);
 
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  // Persist ved endringer
+  React.useEffect(() => {
+    try {
+      localStorage.setItem("cart", JSON.stringify(state));
+    } catch {}
   }, [state]);
 
-  const api: Ctx = useMemo(() => ({
-    state,
-    add: (item) => { dispatch({ type: "ADD", payload: item }); toast.success(`${item.title} added to cart`); },
-    remove: (id) => { const item = state.items.find(i => i.id === id); dispatch({ type: "REMOVE", id }); toast.warning(`${item?.title ?? "Item"} removed`); },
-    setQty: (id, qty) => dispatch({ type: "SET_QTY", id, qty }),
-    clear: () => dispatch({ type: "CLEAR" }),
-    totalQty: state.items.reduce((n, i) => n + i.qty, 0),
-    totalCost: state.items.reduce((sum, i) => sum + i.qty * i.price, 0),
-  }), [state]);
+  const add = React.useCallback((item: CartItem) => {
+    const qty = Math.max(item.qty ?? 1, 1);
+    dispatch({ type: "ADD", payload: { ...item, qty } });
+    toast.success(`${item.title} lagt i handlekurven`);
+  }, []);
 
-  return <CartCtx.Provider value={api}>{children}</CartCtx.Provider>;
+  const remove = React.useCallback((id: string) => {
+    dispatch({ type: "REMOVE", id });
+    toast.warning(`Vare fjernet`);
+  }, []);
+
+  const setQty = React.useCallback((id: string, qty: number) => {
+    dispatch({ type: "SET_QTY", id, qty });
+  }, []);
+
+  const clear = React.useCallback(() => {
+    dispatch({ type: "CLEAR" });
+    toast.success("Handlekurv tømt");
+  }, []);
+
+  const totalQty = React.useMemo(
+    () => state.items.reduce((s, i) => s + i.qty, 0),
+    [state.items]
+  );
+  const totalCost = React.useMemo(
+    () => state.items.reduce((s, i) => s + i.qty * i.price, 0),
+    [state.items]
+  );
+
+  const value = React.useMemo(
+    () => ({ state, add, remove, setQty, clear, totalQty, totalCost }),
+    [state, add, remove, setQty, clear, totalQty, totalCost]
+  );
+
+  return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }
 
 export function useCart() {
-  const ctx = useContext(CartCtx);
-  if (!ctx) throw new Error("useCart must be used within CartProvider");
+  const ctx = React.useContext(CartContext);
+  if (!ctx) throw new Error("useCart must be used inside CartProvider");
   return ctx;
 }
