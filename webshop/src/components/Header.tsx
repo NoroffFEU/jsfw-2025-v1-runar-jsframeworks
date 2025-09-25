@@ -1,20 +1,38 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useCart } from "@/store/CartContext";
 
 export default function Header() {
   const { totalQty } = useCart();
-  const [compact, setCompact] = useState(false);
 
+  // eksisterende kompakt-logikk
+  const [compact, setCompact] = useState(false);
   useEffect(() => {
     const onScroll = () => setCompact(window.scrollY > 10);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  // NYTT: enkel bump/bubble når totalQty øker (ikke ved første mount)
+  const first = useRef(true);
+  const [bump, setBump] = useState(false);
+  const [bubble, setBubble] = useState(false);
+
+  useEffect(() => {
+    if (first.current) { // ikke animér ved init/hydration
+      first.current = false;
+      return;
+    }
+    setBump(true);
+    setBubble(true);
+    const t1 = setTimeout(() => setBump(false), 300);
+    const t2 = setTimeout(() => setBubble(false), 450);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, [totalQty]);
 
   return (
     <header
@@ -44,14 +62,24 @@ export default function Header() {
 
         <nav className="flex items-center gap-4">
           <Link href="/contact">Contact</Link>
-          <Link href="/cart" className="relative">
+
+          <Link href="/cart" className="relative inline-flex items-center">
             Cart
             <span
-              className="ml-2 rounded-full bg-white/10 px-2 py-0.5 text-sm"
+              aria-label="items in cart"
+              className={`ml-2 rounded-full bg-white/10 px-2 py-0.5 text-sm ${bump ? "animate-bump" : ""}`}
               suppressHydrationWarning
             >
               {totalQty}
             </span>
+
+            {/* liten “bubble”-ring ved badge når antallet endrer seg */}
+            {bubble && (
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute -top-1.5 -right-1.5 h-6 w-6 rounded-full border border-white/40 animate-bubble"
+              />
+            )}
           </Link>
         </nav>
       </div>
