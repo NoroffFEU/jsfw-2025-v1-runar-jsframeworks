@@ -83,9 +83,9 @@ export default function ProductsExplorer({ initial }: Props) {
             onChange={e => setSort(e.target.value as SortKey)}
             className="rounded bg-white/10 px-3 py-2"
           >
-            <option value="name">Name</option>
-            <option value="price-asc">Price (low → high)</option>
-            <option value="price-desc">Price (high → low)</option>
+            <option value="name" className="bg-slate-500 text-slate-100">Name</option>
+            <option value="price-asc" className="bg-slate-500 text-slate-100">Price (low → high)</option>
+            <option value="price-desc" className="bg-slate-500 text-slate-100">Price (high → low)</option>
           </select>
         </div>
       </div>

@@ -10,8 +10,8 @@ export default function Header() {
   const [compact, setCompact] = useState(false);
 
   useEffect(() => {
-    const onScroll = () => setCompact(window.scrollY > 10); // terskel
-    onScroll(); // sett riktig ved refresh midt på siden
+    const onScroll = () => setCompact(window.scrollY > 10);
+    onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
@@ -29,12 +29,13 @@ export default function Header() {
       >
         <Link href="/" className="inline-flex items-center">
           <Image
-            src="/choppingmalllogo.png" // legg fila i /public
+            src="/choppingmalllogo.png"
             alt="Chopping Mall"
             width={160}
             height={40}
             priority
-            className={`h-28 w-auto transition-transform duration-300 ${
+            sizes="(max-width: 640px) 112px, (max-width: 768px) 144px, 224px"
+            className={`w-auto h-16 sm:h-20 md:h-28 transition-transform duration-300 ${
               compact ? "scale-60" : "scale-100"
             }`}
           />

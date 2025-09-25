@@ -57,13 +57,11 @@ type Ctx = {
 
 const CartContext = React.createContext<Ctx | null>(null);
 
-// Bruk et tydelig initial-state (samme på server og første klient-render)
 const initialState: CartState = { items: [] };
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = React.useReducer(cartReducer, initialState);
 
-  // Hydrer fra localStorage ETTER mount (unngår hydration mismatch)
   React.useEffect(() => {
     try {
       const raw = localStorage.getItem("cart");
@@ -74,7 +72,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     } catch {}
   }, []);
 
-  // Persist ved endringer
   React.useEffect(() => {
     try {
       localStorage.setItem("cart", JSON.stringify(state));
@@ -84,12 +81,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const add = React.useCallback((item: CartItem) => {
     const qty = Math.max(item.qty ?? 1, 1);
     dispatch({ type: "ADD", payload: { ...item, qty } });
-    toast.success(`${item.title} lagt i handlekurven`);
+    toast.success(`${item.title} added to cart`);
   }, []);
 
   const remove = React.useCallback((id: string) => {
     dispatch({ type: "REMOVE", id });
-    toast.warning(`Vare fjernet`);
+    toast.warning(`Item removed`);
   }, []);
 
   const setQty = React.useCallback((id: string, qty: number) => {
@@ -98,7 +95,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const clear = React.useCallback(() => {
     dispatch({ type: "CLEAR" });
-    toast.success("Handlekurv tømt");
+    toast.success("Shopping cart emptied");
   }, []);
 
   const totalQty = React.useMemo(

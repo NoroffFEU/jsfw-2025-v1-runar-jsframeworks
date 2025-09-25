@@ -6,18 +6,25 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
 export const metadata: Metadata = {
-  title: "Online Webshop",
-  description: "Noroff JS Frameworks assignment",
+  title: "Chopping Mall",
+  description: "Chopping Mall is chopping their prices! Chop the prices down!",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body>
+      <body className="min-h-dvh flex flex-col">
         <CartProvider>
           <Header />
-          <main className="max-w-6xl mx-auto px-4 py-8">{children}</main>
+
+          <main className="flex-1">
+            <div className="max-w-6xl mx-auto px-4 py-8">
+              {children}
+            </div>
+          </main>
+
           <Footer />
+
           <ToastHost />
         </CartProvider>
       </body>

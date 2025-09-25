@@ -2,6 +2,7 @@
 
 import { useCart } from "@/store/CartContext";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function CartPage() {
   const { state, setQty, remove, totalCost } = useCart();
@@ -10,7 +11,9 @@ export default function CartPage() {
     return (
       <div className="py-16 text-center">
         <p>Your cart is empty.</p>
-        <Link className="inline-flex mt-4 rounded px-4 py-2 bg-white text-black" href="/">Back to shop</Link>
+        <Link className="inline-flex mt-4 rounded px-4 py-2 bg-white text-black" href="/">
+          Back to shop
+        </Link>
       </div>
     );
   }
@@ -24,8 +27,14 @@ export default function CartPage() {
           <div key={i.id} className="rounded bg-white/5 p-4 flex items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               {i.image ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={i.image} alt={i.title} className="h-16 w-16 object-cover rounded" />
+                <Image
+                  src={i.image}
+                  alt={i.title}
+                  width={64}
+                  height={64}
+                  className="h-16 w-16 object-cover rounded"
+                  unoptimized
+                />
               ) : (
                 <div className="h-16 w-16 rounded bg-white/10" />
               )}
@@ -43,7 +52,9 @@ export default function CartPage() {
                 onChange={e => setQty(i.id, Number(e.target.value))}
                 className="w-16 rounded bg-white/10 px-2 py-1"
               />
-              <button className="rounded px-3 py-1 bg-white/10" onClick={() => remove(i.id)}>Remove</button>
+              <button className="rounded px-3 py-1 bg-white/10 cursor-pointer" onClick={() => remove(i.id)}>
+                Remove
+              </button>
             </div>
           </div>
         ))}
