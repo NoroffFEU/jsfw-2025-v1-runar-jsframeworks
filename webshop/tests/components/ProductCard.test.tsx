@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import { CartProvider } from "@/store/CartContext";
 import type { Product } from "@/types/product";
 import ProductCard from "@/components/ProductCard";
 import { formatCurrency } from "@/lib/format";
@@ -10,13 +11,16 @@ const base: Product = {
   image: { url: "/img.jpg", alt: "alt" },
 };
 
-// Hjelper: normaliser harde mellomrom til vanlig space
 const norm = (s: string | null | undefined) =>
   (s ?? "").replace(/\u00a0|\u202f/g, " ");
 
+// liten helper så vi alltid får CartProvider rundt komponentene
+const renderWithProviders = (ui: React.ReactElement) =>
+  render(<CartProvider>{ui}</CartProvider>);
+
 describe("ProductCard", () => {
   it("viser pris uten rabatt", () => {
-    render(<ProductCard p={base} />);
+    renderWithProviders(<ProductCard p={base} />);
     const current = screen.getByLabelText("price-current");
     expect(norm(current.textContent)).toBe(norm(formatCurrency(100)));
 
@@ -26,7 +30,7 @@ describe("ProductCard", () => {
 
   it("viser rabattert pris, stryker original, og viser rabattmerke", () => {
     const p = { ...base, discountedPrice: 80 };
-    render(<ProductCard p={p} />);
+    renderWithProviders(<ProductCard p={p} />);
 
     const current = screen.getByLabelText("price-current");
     const original = screen.getByLabelText("price-original");

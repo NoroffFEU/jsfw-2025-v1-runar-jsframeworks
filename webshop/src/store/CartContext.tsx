@@ -3,47 +3,7 @@
 import React from "react";
 import { toast } from "sonner";
 import type { CartItem, CartState } from "./cartTypes";
-
-type Action =
-  | { type: "LOAD"; payload: CartState }
-  | { type: "ADD"; payload: CartItem }
-  | { type: "REMOVE"; id: string }
-  | { type: "SET_QTY"; id: string; qty: number }
-  | { type: "CLEAR" };
-
-export function cartReducer(state: CartState, action: Action): CartState {
-  switch (action.type) {
-    case "LOAD": {
-      const items = Array.isArray(action.payload?.items) ? action.payload.items : [];
-      return { items };
-    }
-    case "ADD": {
-      const exists = state.items.find(i => i.id === action.payload.id);
-      const items = exists
-        ? state.items.map(i =>
-            i.id === action.payload.id
-              ? { ...i, qty: i.qty + action.payload.qty }
-              : i
-          )
-        : [...state.items, action.payload];
-      return { items };
-    }
-    case "REMOVE":
-      return { items: state.items.filter(i => i.id !== action.id) };
-    case "SET_QTY":
-      return {
-        items: state.items.map(i =>
-          i.id === action.id ? { ...i, qty: Math.max(1, action.qty) } : i
-        ),
-      };
-    case "CLEAR":
-      return { items: [] };
-    default: {
-      ((x: never) => x)(action as never);
-      return state;
-    }
-  }
-}
+import { cartReducer } from "./cartReducer";
 
 type Ctx = {
   state: CartState;
@@ -62,6 +22,7 @@ const initialState: CartState = { items: [] };
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = React.useReducer(cartReducer, initialState);
 
+  // Hydrate fra localStorage etter mount
   React.useEffect(() => {
     try {
       const raw = localStorage.getItem("cart");
@@ -69,13 +30,18 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         const parsed = JSON.parse(raw) as CartState;
         dispatch({ type: "LOAD", payload: parsed });
       }
-    } catch {}
+    } catch {
+      // ignore
+    }
   }, []);
 
+  // Persist til localStorage
   React.useEffect(() => {
     try {
       localStorage.setItem("cart", JSON.stringify(state));
-    } catch {}
+    } catch {
+      // ignore
+    }
   }, [state]);
 
   const add = React.useCallback((item: CartItem) => {
@@ -102,6 +68,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     () => state.items.reduce((s, i) => s + i.qty, 0),
     [state.items]
   );
+
   const totalCost = React.useMemo(
     () => state.items.reduce((s, i) => s + i.qty * i.price, 0),
     [state.items]
@@ -120,3 +87,5 @@ export function useCart() {
   if (!ctx) throw new Error("useCart must be used inside CartProvider");
   return ctx;
 }
+
+export { cartReducer } from "./cartReducer";
