@@ -1,14 +1,39 @@
 import Image from "next/image";
+import type { Metadata } from "next";
 import { getProduct } from "@/lib/api";
 import { toCartItem } from "@/store/cartTypes";
 import AddToCart from "./add-to-cart";
 import { notFound } from "next/navigation";
 
+// Your params are a Promise<{ id: string }>, so we'll keep that:
 type Params = Promise<{ id: string }>;
+
+// Minimal dynamic metadata: only title + description (and a canonical if you want)
+export async function generateMetadata(
+  { params }: { params: Params }
+): Promise<Metadata> {
+  const { id } = await params;
+  const p = await getProduct(id).catch(() => null);
+
+  if (!p) {
+    return {
+      title: "Product not found | Chopping Mall",
+      description: "The requested product could not be found.",
+    };
+  }
+
+  const price = typeof p.discountedPrice === "number" ? p.discountedPrice : p.price;
+
+  return {
+    title: `${p.title} | Chopping Mall`,
+    description: p.description ?? `Buy ${p.title} for ${price.toFixed(2)} kr at Chopping Mall.`,
+    // Remove this block entirely if you don't want a canonical:
+    alternates: { canonical: `/product/${p.id}` },
+  };
+}
 
 export default async function ProductPage({ params }: { params: Params }) {
   const { id } = await params;
-
   const p = await getProduct(id).catch(() => notFound());
 
   const price =

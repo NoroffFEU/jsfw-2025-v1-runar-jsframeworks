@@ -6,7 +6,10 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
 export const metadata: Metadata = {
-  title: "Chopping Mall",
+  title: {
+    default: "Chopping Mall",
+    template: "%s | Chopping Mall",
+  },
   description: "Chopping Mall is chopping their prices! Chop the prices down!",
 };
 
@@ -24,7 +27,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </main>
 
           <Footer />
-
           <ToastHost />
         </CartProvider>
       </body>
