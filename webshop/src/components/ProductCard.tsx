@@ -68,14 +68,13 @@ export default function ProductCard({ p }: { p: Product }) {
           </div>
         )}
 
-        {/* Ny knapp – stopper Link-navigasjonen ved klikk */}
         <div className="mt-3">
           <button
             type="button"
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              add(toCartItem(p)); // qty håndteres i add(): min 1
+              add(toCartItem(p));
             }}
             className="inline-flex items-center rounded bg-white text-black px-3 py-1.5 text-sm hover:opacity-90 transition cursor-pointer"
             aria-label={`Add ${p.title} to cart`}

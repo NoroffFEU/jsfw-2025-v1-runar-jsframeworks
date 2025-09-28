@@ -7,7 +7,7 @@ vi.mock("next/link", () => ({
   ),
 }));
 
-// 👇 no-op mock av sonner (toasts)
+// no-op mock av sonner (toasts)
 vi.mock("sonner", () => ({
   toast: {
     success: () => {},

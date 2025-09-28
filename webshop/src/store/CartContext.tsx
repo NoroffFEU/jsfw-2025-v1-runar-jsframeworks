@@ -22,7 +22,6 @@ const initialState: CartState = { items: [] };
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = React.useReducer(cartReducer, initialState);
 
-  // Hydrate fra localStorage etter mount
   React.useEffect(() => {
     try {
       const raw = localStorage.getItem("cart");
@@ -31,16 +30,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         dispatch({ type: "LOAD", payload: parsed });
       }
     } catch {
-      // ignore
     }
   }, []);
 
-  // Persist til localStorage
   React.useEffect(() => {
     try {
       localStorage.setItem("cart", JSON.stringify(state));
     } catch {
-      // ignore
     }
   }, [state]);
 

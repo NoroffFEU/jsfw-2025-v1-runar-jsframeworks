@@ -5,10 +5,8 @@ import { toCartItem } from "@/store/cartTypes";
 import AddToCart from "./add-to-cart";
 import { notFound } from "next/navigation";
 
-// Your params are a Promise<{ id: string }>, so we'll keep that:
 type Params = Promise<{ id: string }>;
 
-// Minimal dynamic metadata: only title + description (and a canonical if you want)
 export async function generateMetadata(
   { params }: { params: Params }
 ): Promise<Metadata> {
@@ -27,7 +25,6 @@ export async function generateMetadata(
   return {
     title: `${p.title} | Chopping Mall`,
     description: p.description ?? `Buy ${p.title} for ${price.toFixed(2)} kr at Chopping Mall.`,
-    // Remove this block entirely if you don't want a canonical:
     alternates: { canonical: `/product/${p.id}` },
   };
 }

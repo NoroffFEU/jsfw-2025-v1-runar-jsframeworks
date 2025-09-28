@@ -8,7 +8,6 @@ import { useCart } from "@/store/CartContext";
 export default function Header() {
   const { totalQty, state, totalCost } = useCart();
 
-  // kompakt header ved scroll
   const [compact, setCompact] = useState(false);
   useEffect(() => {
     const onScroll = () => setCompact(window.scrollY > 10);
@@ -17,7 +16,6 @@ export default function Header() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // bump/bubble anim ved qty-endring (ikke ved første mount)
   const first = useRef(true);
   const [bump, setBump] = useState(false);
   const [bubble, setBubble] = useState(false);
@@ -85,7 +83,6 @@ export default function Header() {
               )}
             </Link>
 
-            {/* Dropdown-panel: holder seg åpent når du beveger musen fra trigger til panelet */}
             <div
               className="absolute right-0 top-full hidden w-80 rounded-lg border border-white/10 bg-black/90 p-3 text-sm shadow-xl backdrop-blur-lg z-50
                          group-hover:block hover:block focus-within:block"
@@ -102,7 +99,6 @@ export default function Header() {
                     {state.items.map((i) => (
                       <li key={i.id} className="flex items-center gap-3 py-2">
                         {i.image ? (
-                          // eslint-disable-next-line @next/next/no-img-element
                           <img
                             src={i.image}
                             alt=""
