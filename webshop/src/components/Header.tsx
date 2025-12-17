@@ -5,6 +5,12 @@ import Link from "next/link";
 import Image from "next/image";
 import { useCart } from "@/store/CartContext";
 
+/**
+ * Main site header with sticky behaviour, navigation, and cart preview.
+ * Includes a small badge animation when cart quantity changes.
+ *
+ * @returns {JSX.Element}
+ */
 export default function Header() {
   const { totalQty, state, totalCost } = useCart();
 
@@ -21,17 +27,21 @@ export default function Header() {
   const [bubble, setBubble] = useState(false);
 
   useEffect(() => {
+    let t1: ReturnType<typeof setTimeout> | undefined;
+    let t2: ReturnType<typeof setTimeout> | undefined;
+
     if (first.current) {
       first.current = false;
-      return;
+    } else {
+      setBump(true);
+      setBubble(true);
+      t1 = setTimeout(() => setBump(false), 300);
+      t2 = setTimeout(() => setBubble(false), 450);
     }
-    setBump(true);
-    setBubble(true);
-    const t1 = setTimeout(() => setBump(false), 300);
-    const t2 = setTimeout(() => setBubble(false), 450);
+
     return () => {
-      clearTimeout(t1);
-      clearTimeout(t2);
+      if (t1) clearTimeout(t1);
+      if (t2) clearTimeout(t2);
     };
   }, [totalQty]);
 
@@ -61,7 +71,7 @@ export default function Header() {
           <span className="sr-only">Chopping Mall</span>
         </Link>
 
-        <nav className="flex items-center gap-4">
+        <nav className="flex items-center gap-4" aria-label="Main navigation">
           <Link href="/contact">Contact</Link>
 
           {/* Cart + hover preview (gapless) */}
@@ -69,8 +79,10 @@ export default function Header() {
             <Link href="/cart" className="relative inline-flex items-center">
               Cart
               <span
-                aria-label="items in cart"
-                className={`ml-2 rounded-full bg-white/10 px-2 py-0.5 text-sm ${bump ? "animate-bump" : ""}`}
+                aria-label={`Items in cart: ${totalQty}`}
+                className={`ml-2 rounded-full bg-white/10 px-2 py-0.5 text-sm ${
+                  bump ? "animate-bump" : ""
+                }`}
                 suppressHydrationWarning
               >
                 {totalQty}
@@ -99,11 +111,18 @@ export default function Header() {
                     {state.items.map((i) => (
                       <li key={i.id} className="flex items-center gap-3 py-2">
                         {i.image ? (
-                          <img
-                            src={i.image}
-                            alt=""
-                            className="h-10 w-10 rounded object-cover"
-                          />
+                          <>
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={i.image}
+                              alt={
+                                i.title
+                                  ? `${i.title} product image`
+                                  : "Product image"
+                              }
+                              className="h-10 w-10 rounded object-cover"
+                            />
+                          </>
                         ) : (
                           <div className="h-10 w-10 rounded bg-white/10" />
                         )}

@@ -133,6 +133,16 @@ src/
 
 ---
 
+## Improvements (Portfolio polish)
+
+- Added missing label associations in Contact form (htmlFor / id) to improve accessibility.
+- Removed ESLint warnings (no-empty catch blocks, consistent-return, strict equality).
+- Improved cart persistence robustness by handling corrupted localStorage data safely.
+- Replaced unstable React list keys in loading skeletons with stable keys.
+- Updated tests to include correct hook dependencies and removed any from test mocks.
+
+---
+
 ## Accessibility & Code Quality
 - Good contrast and focus states for dark theme
 - ARIA labels for prices/discounts where appropriate
